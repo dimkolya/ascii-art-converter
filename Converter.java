@@ -3,14 +3,17 @@ import java.awt.*;
 import java.awt.image.*;
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 
 public class Converter {
-    private static final String LETTER = " `.-':_,^=;><+!rc*/z?sLTv)J7(|Fi{C}fI31tlu[neoZ5Yxjya]2ESwqkP6h9d4VpOGbUAKXHm8RD#$Bg0MNWQ%&@";
-    private static final int MAX_WIDTH = 120;
+    private static final String LETTER = " .,:ilwW";
+    //" `.-':_,^=;><+!rc*/z?sLTv)J7(|Fi{C}fI31tlu[neoZ5Yxjya]2ESwqkP6h9d4VpOGbUAKXHm8RD#$Bg0MNWQ%&@";
+    private static final int MAX_WIDTH = 100;
     private static final double RED = 0.299;
     private static final double GREEN = 0.587;
     private static final double BLUE = 0.114;
     private static final double LETTER_RATIO = 2.3;
+    private static final double IGNORE = 0.04;
 
     public static void main(String[] args) {
         if (args != null) {
@@ -93,17 +96,43 @@ public class Converter {
         }
         int scaleWidth = image.getWidth() / maxWidth;
         int scaleHeight = (int) (scaleWidth * letterRatio);
+        int width = image.getWidth() / scaleWidth;
+        int height = image.getHeight() / scaleHeight;
+        double[][] brightnesses = new double[width][height];
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                brightnesses[x][y] = getBrightness(image, scaleHeight, scaleWidth, x * scaleWidth, y * scaleHeight);
+            }
+        }
+        increaseContrast(brightnesses, width, height);
         for (int y = 0; y < image.getHeight() / scaleHeight; y++) {
             StringBuilder sb = new StringBuilder();
             for (int x = 0; x < image.getWidth() / scaleWidth; x++) {
-                double brightness = getBrightness(image, scaleHeight, scaleWidth, x * scaleWidth, y * scaleHeight);
+                double brightness = brightnesses[x][y];
                 int index = (int) ((LETTER.length() - 1) * brightness);
                 if (light) {
                     index = LETTER.length() - 1 - index;
                 }
+                index = Math.min(Math.max(index, 0), LETTER.length() - 1);
                 sb.append(LETTER.charAt(index));
             }
             System.out.println(sb);
+        }
+    }
+
+    private static void increaseContrast(double[][] data, int n, int m) {
+        double[] sorted = new double[n * m];
+        for (int i = 0; i < n; i++) {
+            System.arraycopy(data[i], 0, sorted, i * m, m);
+        }
+        Arrays.sort(sorted);
+        double minValue = sorted[(int) ((sorted.length - 1) * IGNORE)];
+        double maxValue = sorted[sorted.length - 1 - (int) ((sorted.length - 1) * IGNORE)];
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < m; j++) {
+                data[i][j] = (data[i][j] - minValue) / (maxValue - minValue);
+                data[i][j] = Math.min(Math.max(data[i][j], 0), 1);
+            }
         }
     }
 
@@ -116,6 +145,6 @@ public class Converter {
             }
         }
         double result = sumOfBrightness / 256 / scaleHeight / scaleWidth;
-        return Math.max(Math.min(result, 1), 0);
+        return Math.min(Math.max(result, 0), 1);
     }
 }
