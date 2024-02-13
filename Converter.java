@@ -6,13 +6,14 @@ import java.io.IOException;
 import java.util.Arrays;
 
 public class Converter {
-    private static final String LETTER = " .,:ilwW";
-    //" `.-':_,^=;><+!rc*/z?sLTv)J7(|Fi{C}fI31tlu[neoZ5Yxjya]2ESwqkP6h9d4VpOGbUAKXHm8RD#$Bg0MNWQ%&@";
+    private static final String LETTER = "  .-=+*#%@";
+            //" .,:ilwW";
+            //" `.-':_,^=;><+!rc*/z?sLTv)J7(|Fi{C}fI31tlu[neoZ5Yxjya]2ESwqkP6h9d4VpOGbUAKXHm8RD#$Bg0MNWQ%&@";
     private static final int MAX_WIDTH = 100;
     private static final double RED = 0.299;
     private static final double GREEN = 0.587;
     private static final double BLUE = 0.114;
-    private static final double LETTER_RATIO = 2.3;
+    private static final double LETTER_RATIO = 2;
     private static final double IGNORE = 0.04;
 
     public static void main(String[] args) {
@@ -95,6 +96,10 @@ public class Converter {
             return;
         }
         int scaleWidth = image.getWidth() / maxWidth;
+        if (scaleWidth == 0) {
+            System.err.println("Error: too large maxWidth");
+            return;
+        }
         int scaleHeight = (int) (scaleWidth * letterRatio);
         int width = image.getWidth() / scaleWidth;
         int height = image.getHeight() / scaleHeight;
