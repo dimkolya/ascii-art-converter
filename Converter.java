@@ -19,11 +19,11 @@ public class Converter {
     public static void main(String[] args) {
         if (args != null) {
             if (args.length == 1 && args[0] != null) {
-                convert(args[0], false, MAX_WIDTH, LETTER_RATIO);
+                convert(args[0], true, MAX_WIDTH, LETTER_RATIO);
                 return;
             }
             boolean validArgs = true;
-            boolean light = false;
+            boolean dark = true;
             int maxWidth = MAX_WIDTH;
             double letterRatio = LETTER_RATIO;
             if (args.length == 4) {
@@ -34,10 +34,8 @@ public class Converter {
                     validArgs = false;
                 } else {
                     if (args[1].equals("light")) {
-                        light = true;
-                    } else if (args[1].equals("dark")) {
-                        light = false;
-                    } else {
+                        dark = false;
+                    } else if (!args[1].equals("dark")) {
                         validArgs = false;
                     }
                 }
@@ -71,7 +69,7 @@ public class Converter {
                 validArgs = false;
             }
             if (validArgs) {
-                convert(args[0], light, maxWidth, letterRatio);
+                convert(args[0], dark, maxWidth, letterRatio);
             } else {
                 System.out.println("Usage:");
                 System.out.println("\tutility-name <inputImage>");
@@ -83,7 +81,7 @@ public class Converter {
         }
     }
 
-    private static void convert(String inputFileName, boolean light, int maxWidth, double letterRatio) {
+    private static void convert(String inputFileName, boolean dark, int maxWidth, double letterRatio) {
         BufferedImage image = null;
         try {
             image = ImageIO.read(new File(inputFileName));
@@ -92,7 +90,7 @@ public class Converter {
             return;
         }
         if (image == null) {
-            System.err.println("Image opening error");
+            System.err.println("Image opening error: can't read this image.");
             return;
         }
         int scaleWidth = image.getWidth() / maxWidth;
@@ -115,7 +113,7 @@ public class Converter {
             for (int x = 0; x < image.getWidth() / scaleWidth; x++) {
                 double brightness = brightnesses[x][y];
                 int index = (int) ((LETTER.length() - 1) * brightness);
-                if (light) {
+                if (!dark) {
                     index = LETTER.length() - 1 - index;
                 }
                 index = Math.min(Math.max(index, 0), LETTER.length() - 1);
@@ -145,7 +143,7 @@ public class Converter {
         double sumOfBrightness = 0;
         for (int i = 0; i < scaleWidth; i++) {
             for (int j = 0; j < scaleHeight; j++) {
-                Color color = new Color(image.getRGB(x + i, y + i));
+                Color color = new Color(image.getRGB(x + i, y + j));
                 sumOfBrightness += RED * color.getRed() + GREEN * color.getGreen() + BLUE * color.getBlue();
             }
         }
